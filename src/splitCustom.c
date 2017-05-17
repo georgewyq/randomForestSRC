@@ -25,9 +25,8 @@ void registerCustomFunctions() {
   registerThis (&getCustomSplitStatisticMultivariateClassification, CLAS_FAM, 1);
 
   // Register the custom regression split rule in the first slot.
-  // registerThis (&getCustomSplitStatisticMultivariateRegression, REGR_FAM, 1);
-  registerThis (&getCustomSplitRegMAE, REGR_FAM, 1);
-
+  registerThis (&getCustomSplitStatisticMultivariateRegression, REGR_FAM, 1);
+  
   // Register the custom survival split rule in the first slot.
   registerThis (&getCustomSplitStatisticSurvival, SURV_FAM, 1);
 
@@ -98,70 +97,6 @@ void registerCustomFunctions() {
 
 */
 
-double getCustomSplitRegMAE(unsigned int n,
-                                                      char        *membership,
-                                                      double      *time,
-                                                      double      *event,
-
-                                                      unsigned int eventTypeSize,
-                                                      unsigned int eventTimeSize,
-                                                      double      *eventTime,
-
-                                                      double      *response,
-                                                      double       mean,
-                                                      double       variance,
-                                                      unsigned int maxLevel)
-{
-
-  // EXAMPLE:  Multivariate Regression
-
-  // Local variables needed for this example:
-  double sumLeft, sumRght;
-  double sumLeftSqr, sumRghtSqr;
-  double delta;
-
-  // Left and right normalization sizes.
-  unsigned int leftSize, rghtSize;
-
-  unsigned int i;
-
-  // Initialization of local variables:
-  sumLeft = sumRght = 0.0;
-  leftSize = rghtSize = 0;
-
-  delta = 0.0;
-
-  // In general, calculating a split statistic will require iterating
-  // over all members in the parent node, and ascertaining daughter
-  // membership, and performing a well defined calculation based on
-  // membership.  In this example, the sum of the difference from the
-  // mean for the y-outcome in each daughter node is calculated.
-
-  for (i = 1; i <= n; i++) {
-    // Membership will be either LEFT or RIGHT.  
-    if (membership[i] == LEFT) {
-      // Add the left member to the sum.
-      sumLeft += response[i] - mean;
-      leftSize ++;
-    }
-    else {
-      // Add the right member to the sum.
-      sumRght += response[i] - mean;
-      rghtSize ++;
-    }
-  }
-
-  // Finally, we calculate the composite mean square error for each daughter.
-  // Change to mean absolute error
-  sumLeftSqr = abs(sumLeft) / ((double) leftSize * variance);
-  sumRghtSqr = abd(sumRght) / ((double) rghtSize * variance);
-
-  delta = sumLeftSqr + sumRghtSqr;
-
-  return delta;
-}
-
-
 double getCustomSplitStatisticMultivariateRegression (unsigned int n,
                                                       char        *membership,
                                                       double      *time,
@@ -216,8 +151,11 @@ double getCustomSplitStatisticMultivariateRegression (unsigned int n,
   }
 
   // Finally, we calculate the composite mean square error for each daughter.
-  sumLeftSqr = pow(sumLeft, 2.0) / ((double) leftSize * variance);
-  sumRghtSqr = pow(sumRght, 2.0) / ((double) rghtSize * variance);
+  //sumLeftSqr = pow(sumLeft, 2.0) / ((double) leftSize * variance);
+  //sumRghtSqr = pow(sumRght, 2.0) / ((double) rghtSize * variance);
+  // change to MAE
+  sumLeftSqr = fabs(sumLeft) / ((double) leftSize * variance);
+  sumRghtSqr = fabs(sumRght) / ((double) rghtSize * variance);
 
   delta = sumLeftSqr + sumRghtSqr;
 
